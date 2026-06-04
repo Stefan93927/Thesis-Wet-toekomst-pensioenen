@@ -1,6 +1,6 @@
 """diebold_mariano.py
 --------------------
-Diebold-Mariano test: DRL agent (run_042) vs Fixed-Rule and Monte Carlo ALM.
+Diebold-Mariano test: DRL agent (run_043) vs Fixed-Rule and Monte Carlo ALM.
 
 Three loss functions (applied monthly over the 85-step test period):
   L1  Squared FR deviation from target  (FR_t - 1.05)^2       [stability]
@@ -108,7 +108,7 @@ def dm_test(
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    model_dir = Path("src/models/run_042")
+    model_dir = Path("src/models/run_043")
 
     # ---- Load trajectories ------------------------------------------------ #
     drl = np.load(model_dir / "trajectory_drl_ppo.npz")
