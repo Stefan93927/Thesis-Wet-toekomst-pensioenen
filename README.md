@@ -263,7 +263,6 @@ Results from `src/models/run_043/eval_results.json` — test period Jan 2018–D
 data/                               ← project root
 ├── README.md
 ├── requirements.txt
-├── CLAUDE.md                       ← project specification (for Claude Code)
 │
 ├── train.py                        ← main training script
 ├── evaluate.py                     ← out-of-sample evaluation vs baselines
