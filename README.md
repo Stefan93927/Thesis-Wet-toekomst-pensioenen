@@ -211,10 +211,10 @@ py -3 train.py \
 
 ```bash
 # Main robustness suite (initial conditions, transaction costs, liability blend, DNB stress)
-py -3 robustness.py --model-path src/models/run_042/best_model.zip
+py -3 robustness.py --model-path src/models/run_043/best_model.zip
 
 # Extended robustness with Hoevenaars baseline + multi-path VAR simulation
-py -3 evaluate_robustness.py --model-path src/models/run_042/best_model.zip
+py -3 evaluate_robustness.py --model-path src/models/run_043/best_model.zip
 ```
 
 ### Generating Thesis Figures
