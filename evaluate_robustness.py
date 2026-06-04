@@ -15,8 +15,6 @@ Design notes
   DRL agent.  The historical path gives the cleanest like-for-like comparison.
 - The extended VAR adds vstoxx_level as a 4th variable so the Regime Heuristic
   can observe VSTOXX on synthetic paths.
-- VSTOXX regime thresholds are the 33rd and 67th percentiles of the TRAINING-
-  PERIOD (Jan 2000 - Dec 2015) VSTOXX distribution — never fitted on test data.
 - Constrained MC objective: argmax E[total dist] subject to P(ever deplete) <= 10%.
   The full feasible set is saved to the calibration JSON.
 - VecNormalize is reward-only (norm_obs=False) — no observation normalization
@@ -32,7 +30,7 @@ Outputs
 Usage
 -----
     py -3 evaluate_robustness.py
-    py -3 evaluate_robustness.py --model-path src/models/run_042/best_model.zip
+    py -3 evaluate_robustness.py --model-path src/models/run_043/best_model.zip
     py -3 evaluate_robustness.py --n-paths 200   # smoke test
     py -3 evaluate_robustness.py --no-drl        # skip DRL agent (baselines only)
 """
@@ -77,7 +75,7 @@ except ImportError as exc:
 RESULTS_DIR           = _ROOT / "results"
 MODEL_PATH_DEFAULT    = "src/models/run_042/best_model.zip"
 N_SCENARIOS           = 1_000
-SIM_HORIZON           = 84      # Jan 2018 – Dec 2024 (84 months)
+SIM_HORIZON           = 85      # dec 2018 – Dec 2025 (85 months)
 SEED                  = 42
 DEPLETION_BUDGET      = 0.10    # Constrained MC: max 10 % depletion probability
 
@@ -101,7 +99,7 @@ class RegimeHeuristicPolicy:
     """Hand-coded policy conditioned on current VSTOXX regime.
 
     VSTOXX thresholds are the 33rd and 67th percentiles of the TRAINING-PERIOD
-    (Jan 2000 - Dec 2015) vstoxx_level distribution.  Thresholds are supplied in
+    (Jan 1999 - Dec 2015) vstoxx_level distribution.  Thresholds are supplied in
     SCALED units (matching the StandardScaler-transformed observation), because the
     observation vector contains scaled features.
 
@@ -672,7 +670,7 @@ def summarise_batch_metrics(metrics: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def load_drl_agent(model_path: Path, env_cfg: EnvConfig, results: dict):
-    """Load the run_042 PPO agent.  Mirrors evaluate.py exactly."""
+    """Load the run_043 PPO agent.  Mirrors evaluate.py exactly."""
     _n_regimes = 3
     try:
         with zipfile.ZipFile(str(model_path)) as zf:
