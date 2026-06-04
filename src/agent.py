@@ -7,7 +7,7 @@ Architecture (end-to-end differentiable)
    Output : hidden state h_t ∈ R^256
    Details: single-layer LSTM, LayerNorm on h_t, Dropout(0.3)
 
-2. GMM Liability-Aware Regime Gating  (run_005: 2D bivariate GMM)
+2. GMM Liability-Aware Regime Gating  
    Input  : [h_t, VSTOXX_t, RTS_Slope_30Y_10Y_t, FR_t]  (259-dim)
    Output : regime weights γ_t ∈ Δ^4  (softmax), risk budget β_t ∈ (0,1)
    Details: bivariate GMM fitted offline on [VSTOXX, RTS_Slope_30Y_10Y];
@@ -116,9 +116,9 @@ class AgentConfig:
     equity_correction_scale: float = 0.05   # tanh correction around w_eq*
     w_eq_base:    float = 0.55
     w_eq_min:     float = 0.30
-    w_eq_max:     float = 0.90
-    eq_tilt_min:  float = -0.25   # run_007: widened from -0.10 to match CLAUDE.md
-    eq_tilt_max:  float = +0.25   # run_007: widened from +0.10 to match CLAUDE.md
+    w_eq_max:     float = 0.80
+    eq_tilt_min:  float = -0.25   
+    eq_tilt_max:  float = +0.25   
     fill_max:     float = 0.10
     dist_max:     float = 0.05
 
@@ -364,15 +364,12 @@ class WtpPolicyNetwork(nn.Module):
 
         # ---- Action means --------------------------------------------- #
         # Equity tilt: risk-parity recommendation + small learnable correction.
-        # run_036a: removed .clamp() — environment clips sampled actions to
-        # [-0.25, +0.25] but the mean can float freely, so gradients flow even
-        # when the risk-parity signal pushes toward a boundary.
+       
         delta_e = torch.tanh(self.equity_correction(h_t)) * cfg.equity_correction_scale
         e_mean  = w_eq_rp - cfg.w_eq_base + delta_e                          # (B,1)
 
         # Fill rate: tanh rescaled to [0, fill_max].
-        # run_036a: replaces sigmoid which saturated to 0 at init causing
-        # zero-gradient lock.  tanh derivative (1-tanh²) > 0 everywhere.
+     
         f_mean = 0.5 * (torch.tanh(self.fill_head(h_t)) + 1.0) * cfg.fill_max  # (B,1)
 
         # Distribution rate: tanh rescaled to [0, dist_max].
@@ -448,7 +445,7 @@ class WtpActorCriticPolicy(ActorCriticPolicy):
         )
 
         # Single optimizer over all parameters.
-        # run_038: explicit weight_decay + eps to prevent weight explosion.
+      
         self.optimizer = torch.optim.Adam(
             self.parameters(),
             lr=lr_schedule(1),
