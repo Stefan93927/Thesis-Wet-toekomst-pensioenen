@@ -48,7 +48,7 @@ py -3 evaluate.py --model-path src/models/run_043/best_model.zip
 py -3 robustness.py --model-path src/models/run_043/best_model.zip
 ```
 
-> On **Windows PowerShell**, the trailing `\` line-continuation does not work — put each command on a single line, or replace `\` with a backtick `` ` ``.
+
 
 Pre-trained model artefacts for all thesis runs are included under `src/models/`. You can skip Step 3 and evaluate the saved model directly.
 
