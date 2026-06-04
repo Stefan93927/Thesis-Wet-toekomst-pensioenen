@@ -6,11 +6,10 @@ that results are not driven by a single lucky initialisation.
 
 Seed layout
 -----------
-- Seed 42  (run_007)   : base run, already trained
+- Seed 42     : base run, already trained
 - Seeds 1,2,3,4        : four additional replications (default)
 
-The base run (run_007) is ALWAYS included in the aggregate if its
-best_model.zip exists, regardless of whether it appears in --seeds.
+
 
 Usage
 -----
