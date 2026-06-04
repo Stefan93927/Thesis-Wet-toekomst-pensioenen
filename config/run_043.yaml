@@ -1,0 +1,53 @@
+# run_043 — Corrected DNB/EIOPA UFR: 3.30 % annualised
+# -----------------------------------------------------------------------
+# Only change from run_042: r_ufr corrected from 0.0024/month (2.9% ann.)
+# to 0.002711/month (3.30% ann.), the DNB/EIOPA UFR confirmed unchanged
+# at 3.30% as of 1 January 2025.  All other hyperparameters identical
+# to run_042 so the UFR effect is fully isolated.
+# -----------------------------------------------------------------------
+# Flat key:value format (parsed by train.py _parse_simple_yaml).
+# -----------------------------------------------------------------------
+
+# --- Logistics ----------------------------------------------------------
+log_dir: src/models/run_043
+timesteps: 2000000
+seed: 42
+n_envs: 4
+eval_freq: 50000
+checkpoint_freq: 102400
+no_progress_bar: false
+
+# --- Transaction costs --------------------------------------------------
+tc_bps: 10.0             # 10 bps one-way equity turnover cost
+
+# --- Reward normalization -----------------------------------------------
+norm_reward: true
+
+# --- Lexicographic reward weights (unchanged from run_042) --------------
+delta: 1000.0
+gamma_depletion: 100.0
+alpha: 1.0
+beta: 0.8
+fill_bonus: 3.0
+epsilon_equity: 2.0
+dist_weight: 1.0
+
+# --- Lifecycle ----------------------------------------------------------
+lifecycle: true
+
+# --- PPO hyperparameters (unchanged from run_042) -----------------------
+lr: 0.0003
+lr_warmup_steps: 10000
+max_grad_norm: 0.5
+weight_decay: 0.0001
+n_steps: 2048
+batch_size: 64
+ent_coef: 0.01
+vf_coef: 0.5
+n_regimes: 3
+
+# --- Behavioral cloning warmstart ---------------------------------------
+bc_warmstart: true
+bc_warmstart_steps: 500000
+bc_initial_weight: 1.0
+bc_n_demos: 10

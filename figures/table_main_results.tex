@@ -1,0 +1,138 @@
+% Table 4.1.1 — Out-of-Sample Performance and Statistical Significance (2018–2025)
+% ALL columns: run_043 (UFR corrected to 3.30 % ann., DNB/EIOPA 1 Jan 2025)
+% DRL/Fixed-Rule/Hoevenaars CIs: 1,000-iteration stationary block bootstrap (eval_results.json)
+% Monte Carlo CIs: Fixed-Rule bootstrap as proxy (degenerate f*=0, d*=0 policy)
+\begin{table}[H]
+\centering
+\caption{Out-of-Sample Performance and Statistical Significance (2018--2025)}
+\label{tab:out_of_sample_4_2_1}
+\begin{threeparttable}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{l
+    >{\centering\arraybackslash}p{2.1cm}
+    >{\centering\arraybackslash}p{2.1cm}
+    >{\centering\arraybackslash}p{2.1cm}
+    >{\centering\arraybackslash}p{2.1cm}}
+\toprule
+\textbf{Metric}
+  & \textbf{DRL}
+  & \textbf{Fixed-Rule ALM}
+  & \textbf{Monte Carlo ALM}
+  & \textbf{Hoevenaars ALM\tnote{a}} \\
+\midrule
+\multicolumn{5}{l}{\textit{Solvency \& Risk}} \\[2pt]
+
+FR Terminal
+  & 1.8671
+  & 1.651
+  & 1.651
+  & 1.488 \\
+  & \scriptsize[1.8083,\;1.8671]
+  & \scriptsize[1.599,\;1.651]
+  & \scriptsize[1.599,\;1.651]
+  & \scriptsize[1.467,\;1.488] \\[5pt]
+
+FR Max Drawdown
+  & 0.1528
+  & 0.147
+  & 0.147
+  & 0.149 \\
+  & \scriptsize[0.0872,\;0.1528]
+  & \scriptsize[0.077,\;0.147]
+  & \scriptsize[0.077,\;0.147]
+  & \scriptsize[0.070,\;0.149] \\[5pt]
+
+Calmar Ratio
+  & 0.600
+  & 0.507
+  & 0.507
+  & 0.399 \\
+  & \scriptsize[0.5334,\;1.0308]
+  & \scriptsize[0.450,\;0.957]
+  & \scriptsize[0.450,\;0.957]
+  & \scriptsize[0.352,\;0.825] \\[2pt]
+
+\midrule
+\multicolumn{5}{l}{\textit{Solidarity Buffer \& Distributions}} \\[2pt]
+
+Buffer Depletion
+  & 3.53\%
+  & 94.12\%
+  & 96.47\%
+  & 3.53\% \\
+  & \scriptsize[0.00\%,\;7.06\%]
+  & \scriptsize[89.41\%,\;98.82\%]
+  & \scriptsize[90.59\%,\;100.00\%]
+  & \scriptsize[0.00\%,\;8.24\%] \\[5pt]
+
+Total Distributions
+  & 0.1385
+  & 0.1630
+  & 0.1618
+  & 0.1647 \\
+  & \scriptsize[0.0750,\;0.2326]
+  & \scriptsize[0.105,\;0.236]
+  & \scriptsize[0.091,\;0.277]
+  & \scriptsize[0.108,\;0.235] \\[5pt]
+
+Cohort RR Variance
+  & 0.00171
+  & 0.00186
+  & 0.00187
+  & 0.00189 \\
+  & \scriptsize[0.00113,\;0.00559]
+  & \scriptsize[0.00117,\;0.00605]
+  & \scriptsize[0.00117,\;0.00605]
+  & \scriptsize[0.00118,\;0.00609] \\[2pt]
+
+\midrule
+\multicolumn{5}{l}{\textit{Participant Welfare (Terminal PPV)}} \\[2pt]
+
+Young Cohort
+  & 2.1705
+  & 1.992
+  & 1.995
+  & 1.818 \\
+  & \scriptsize[2.1390,\;2.1744]
+  & \scriptsize[1.959,\;1.993]
+  & \scriptsize[1.961,\;1.995]
+  & \scriptsize[1.818,\;1.848] \\[5pt]
+
+Mid-Career Cohort
+  & 1.9110
+  & 1.734
+  & 1.735
+  & 1.580 \\
+  & \scriptsize[1.9045,\;1.9324]
+  & \scriptsize[1.724,\;1.751]
+  & \scriptsize[1.725,\;1.752]
+  & \scriptsize[1.580,\;1.621] \\[5pt]
+
+Retired Cohort
+  & 1.2942
+  & 1.173
+  & 1.172
+  & 1.064 \\
+  & \scriptsize[1.2942,\;1.3419]
+  & \scriptsize[1.173,\;1.214]
+  & \scriptsize[1.172,\;1.213]
+  & \scriptsize[1.064,\;1.120] \\[2pt]
+
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+  \footnotesize
+  \item \textit{Note:} Brackets denote 95\% bootstrap confidence intervals
+    derived from 1{,}000 iterations of a stationary block bootstrap to
+    account for path-dependency in the monthly time series.
+    For the Hoevenaars ALM the same bootstrap is applied to the fixed
+    v4 headline policy trajectory; parameters are not re-optimised on
+    each resample. Monte Carlo ALM CIs use the Fixed-Rule bootstrap as
+    a proxy (degenerate policy: $f^{*}=0$, $d^{*}=0$).
+  \item[a] Cohort RR variance uses the identical rolling 12-month
+    cross-cohort variance definition as the other three models.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

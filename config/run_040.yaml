@@ -1,0 +1,60 @@
+# run_040 — Progressive Buffer-Health Distribution Incentive
+# -----------------------------------------------------------------------
+# Root cause of run_039 hoarding: fill_bonus=3.0 dominated distribution
+# reward; agent learned to perpetually fill rather than pay out.
+#
+# Fix: piecewise progressive buffer_scaling in _compute_reward():
+#   Zone 1 (Danger)     B < 0.03  → circuit breaker, no dist reward
+#   Zone 2 (Rebuilding) 0.03..0.05 → scaling ramps 0.0 → 1.0
+#   Zone 3 (Sweet Spot) 0.05..0.12 → scaling ramps 1.0 → 2.0
+#   Zone 4 (Surplus)    B >= 0.12  → maximum scaling 2.0
+#
+# fill_bonus reduced from 3.0 → 1.5 so filling no longer dominates.
+# Buffer-building is still incentivised but cannot suppress distributions
+# once the buffer is healthy (B >= 0.05).
+# Lexicographic safety hierarchy (delta=1000, gamma=100) unchanged.
+# DemonstrationPolicy BC warmstart updated to teach progressive pattern.
+# -----------------------------------------------------------------------
+# Flat key:value format (parsed by train.py _parse_simple_yaml).
+# -----------------------------------------------------------------------
+
+# --- Logistics ----------------------------------------------------------
+log_dir: src/models/run_040
+timesteps: 2000000
+seed: 42
+n_envs: 4
+eval_freq: 50000
+checkpoint_freq: 102400
+no_progress_bar: false
+
+# --- Reward normalization -----------------------------------------------
+norm_reward: true
+
+# --- Lexicographic reward weights (unchanged from run_039) --------------
+delta: 1000.0
+gamma_depletion: 100.0
+alpha: 1.0
+beta: 0.8
+fill_bonus: 1.5
+epsilon_equity: 2.0
+dist_weight: 1.0
+
+# --- Lifecycle ----------------------------------------------------------
+lifecycle: true
+
+# --- PPO hyperparameters (keep run_039 regularisation) ------------------
+lr: 0.0003
+lr_warmup_steps: 10000
+max_grad_norm: 0.5
+weight_decay: 0.0001
+n_steps: 2048
+batch_size: 64
+ent_coef: 0.01
+vf_coef: 0.5
+n_regimes: 3
+
+# --- Behavioral cloning warmstart ---------------------------------------
+bc_warmstart: true
+bc_warmstart_steps: 500000
+bc_initial_weight: 1.0
+bc_n_demos: 10
