@@ -36,7 +36,7 @@ pip install -r requirements.txt
 # 2. Place data files in the project root (see Data Setup section)
 
 # 3. Train the main model (~3–6 hours on a modern CPU, faster with GPU)
-py -3 train.py --timesteps 2000000 --seed 42 --log-dir src/models/run_042 \
+py -3 train.py --timesteps 2000000 --seed 42 --log-dir src/models/run_043 \
     --n-regimes 3 --lifecycle --bc-warmstart --bc-warmstart-steps 500000 \
     --bc-initial-weight 1.0 --bc-n-demos 10 --tc-bps 10.0 \
     --alpha 1.0 --beta 0.8 --delta 1000.0 --fill-bonus 3.0 \
@@ -46,10 +46,10 @@ py -3 train.py --timesteps 2000000 --seed 42 --log-dir src/models/run_042 \
     --eval-freq 50000 --checkpoint-freq 102400
 
 # 4. Evaluate (skips Monte Carlo if --no-mc is passed)
-py -3 evaluate.py --model-path src/models/run_042/best_model.zip
+py -3 evaluate.py --model-path src/models/run_043/best_model.zip
 
 # 5. Robustness analysis
-py -3 robustness.py --model-path src/models/run_042/best_model.zip
+py -3 robustness.py --model-path src/models/run_043/best_model.zip
 ```
 
 Pre-trained model artefacts for all four thesis runs are included in the repository under `src/models/`. You can skip Step 3 and evaluate the saved model directly.
@@ -112,7 +112,7 @@ The pipeline fits and saves `src/scaler.joblib` (StandardScaler) and `src/gmm_k3
 
 ## Reproducing the Main Results
 
-### Run 042 — Main Result (DRL vs Fixed-Rule vs Monte Carlo ALM)
+### Run 043 — Main Result (DRL vs Fixed-Rule vs Monte Carlo ALM)
 
 This is the primary thesis result, Table 4.1.1.
 
@@ -151,22 +151,15 @@ py -3 train.py \
 **Evaluation** (uses saved `best_model.zip`):
 
 ```bash
-py -3 evaluate.py --model-path src/models/run_042/best_model.zip
-```
-
-Results are saved to `src/models/run_042/eval_results.json`.
-
-### Run 043 — Institutional Benchmark (DRL vs Fixed-Rule vs Hoevenaars ALM)
-
-Run 043 uses identical training hyperparameters to run_042. The evaluation adds the Hoevenaars-style ALM as a third baseline. First calibrate the Hoevenaars baseline, then evaluate:
-
-```bash
 # Calibrate Hoevenaars ALM (Bayesian optimisation, ~30–60 min)
 py -3 run_hoevenaars.py
 
 # Evaluate with all three baselines
 py -3 evaluate.py --model-path src/models/run_043/best_model.zip
 ```
+
+Results are saved to `src/models/run_043/eval_results.json`.
+
 
 ### Run 040 — Ablation: Scalar Reward Micro-Distribution Exploit
 
@@ -186,7 +179,7 @@ py -3 train.py \
     --alpha 1.0 \
     --beta 0.8 \
     --delta 1000.0 \
-    --fill-bonus 1.5 \
+    --fill-bonus 3.0 \
     --gamma-depletion 100.0 \
     --epsilon-equity 2.0 \
     --zeta 1.0 \
@@ -230,11 +223,11 @@ All figure scripts are in `figures/`. Run them individually or batch:
 
 ```bash
 # Key thesis figures (requires eval artefacts to exist)
-py -3 figures/fig_fr_buffer_trajectory_run042.py   # Figure 4.1 — FR and buffer paths
-py -3 figures/fig_equity_regime_run042.py           # Figure 4.2 — equity tilt by VSTOXX regime
+py -3 figures/fig_fr_buffer_trajectory_run043.py   # Figure 4.1 — FR and buffer paths
+py -3 figures/fig_equity_regime_run043.py           # Figure 4.2 — equity tilt by VSTOXX regime
 py -3 figures/fig_cohort_ppv_run043.py              # Figure 4.3 — cohort PPV trajectories
 py -3 figures/run040_exploit.py                     # Figure 4.4 — micro-distribution exploit
-py -3 figures/learning_curve_run042.py              # Figure A.1 — training learning curve
+py -3 figures/learning_curve_run043.py              # Figure A.1 — training learning curve
 py -3 figures/liability_blend_robustness.py         # Figure A.2 — liability blend sensitivity
 py -3 figures/reward_weight_robustness.py           # Figure A.3 — reward weight sensitivity
 ```
@@ -287,26 +280,16 @@ data/                               ← project root
 │   ├── metrics.py                  ← evaluation metrics, bootstrap CI, Diebold-Mariano test
 │   ├── scaler.joblib               ← pre-fitted StandardScaler (train period only)
 │   └── models/
-│       ├── run_042/                ← main result: PPO vs Fixed-Rule vs Monte Carlo ALM
+│       ├── run_043/                ← main result: PPO vs Fixed-Rule vs Monte Carlo ALM Vs Hoevenaars
 │       │   ├── best_model.zip      ← best checkpoint (by val composite score)
 │       │   ├── final_model.zip     ← model at end of training
 │       │   ├── train_config.json   ← exact hyperparameters used
 │       │   ├── eval_results.json   ← test-period metrics + bootstrap CI + regime breakdown
 │       │   ├── val_history.json    ← validation curve (never reported, model selection only)
 │       │   └── trajectory_*.npz   ← saved trajectory arrays for figure generation
-│       ├── run_043/                ← institutional benchmark: adds Hoevenaars ALM baseline
 │       ├── run_040/                ← ablation: scalar reward → micro-distribution exploit
 │       └── run_007/                ← pre-lifecycle PoC (legacy, no PPV framework)
 │
-└── figures/                        ← figure generation scripts + output PDFs/PNGs
-    ├── fig_fr_buffer_trajectory_run042.py
-    ├── fig_equity_regime_run042.py
-    ├── fig_cohort_ppv_run043.py
-    ├── run040_exploit.py
-    ├── learning_curve_run042.py
-    ├── liability_blend_robustness.py
-    ├── reward_weight_robustness.py
-    └── ...
 ```
 
 ---
@@ -366,8 +349,7 @@ These are implemented as explicit, testable functions in `src/environment.py` �
 
 | Run | Purpose | Key difference from run_042 |
 |-----|---------|---------------------------|
-| `run_042` | Main result — PPO vs Fixed-Rule vs MC ALM | Baseline |
-| `run_043` | Institutional benchmark — adds Hoevenaars ALM | Same training config; third baseline is Hoevenaars |
+| `run_043` | Institutional benchmark — three ALM baselines | Same training config; third baseline is Hoevenaars |
 | `run_040` | Ablation — scalar reward exploit | `fill_bonus=1.5` (lower threshold → micro-dist exploit) |
 | `run_007` | Pre-lifecycle proof of concept | `timesteps=1M`, no BC warmstart, no lifecycle PPV, `ent_coef=0.05` |
 
