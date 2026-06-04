@@ -65,19 +65,14 @@ class EnvConfig:
     # --- Action space bounds ---------------------------------------------- #
     w_eq_base:      float = 0.55   # strategic equity weight (aggregate / legacy)
     w_eq_min:       float = 0.30
-    w_eq_max:       float = 0.90
+    w_eq_max:       float = 0.80
     eq_tilt_min:    float = -0.25
     eq_tilt_max:    float = +0.25
     fill_rate_max:  float = 0.10
     dist_rate_max:  float = 0.05
 
-    # --- Lifecycle / PPV framework (run_010+) ----------------------------- #
-    # use_lifecycle=False  →  pre-run_009 legacy behaviour (run_007, run_008b).
-    # use_lifecycle=True   →  PPV framework (run_010+):
-    #   R_{i,t} = w_i^eq * r_eq + (1 - w_i^eq) * r_bond - f̃_t + (d̃_t + dec_excess)
-    #   Weights calibrated so ∑ w_i * w_i^eq = 0.55 (fund strategic allocation):
-    #     0.20 × 0.85 + 0.35 × 0.70 + 0.45 × 0.30 = 0.55  (ABP glide-path inspired)
-    use_lifecycle:   bool  = True   # PPV framework (run_010+); set False only for legacy runs
+    # --- Lifecycle / PPV framework 
+    use_lifecycle:   bool  = True   
     w_eq_young_base: float = 0.85   # young:      long horizon, high equity
     w_eq_mid_base:   float = 0.70   # mid-career: transitioning
     w_eq_ret_base:   float = 0.30   # retired:    capital preservation
@@ -106,16 +101,16 @@ class EnvConfig:
     #   Priority 3: Optimisation      (solvency + dist + equity) — normal ops only
 
     # Priority 1 weight (MVEV quadratic penalty): large to dominate all else
-    delta:       float = 3.0     # run_037 YAML overrides to 1000.0
+    delta:       float = 1000
 
     # Priority 2 weight (buffer depletion quadratic penalty)
-    gamma:       float = 0.0     # run_037 YAML overrides to 100.0
+    gamma:       float = 100
 
     # Priority 3 weights (safe-zone optimisation)
     alpha:       float = 1.0     # stability: one-sided penalty below FR_target
     beta:        float = 0.8     # distribution incentive Q_t
-    fill_bonus:  float = 0.0     # direct fill reward: R_fill = fill_bonus * f_tilde
-    epsilon_equity: float = 0.0  # cross-cohort RR variance penalty
+    fill_bonus:  float = 3.0     # direct fill reward: R_fill = fill_bonus * f_tilde
+    epsilon_equity: float = 2.0  # cross-cohort RR variance penalty
 
     # Distribution incentive scaling
     dist_weight:             float = 5.0   # multiplicative scale on Q_t
@@ -139,7 +134,7 @@ class EnvConfig:
     # --- Observation / episode ------------------------------------------- #
     lookback:        int = 12   # months of feature history in state
     n_features:      int = 31   # feature dimension per month
-    n_extra_solvency: int = 3   # run_007: extra obs scalars (annual_o_plus, fill_used, month)
+    n_extra_solvency: int = 3   
 
     # --- Initial conditions (can be overridden via reset(options=...) ) --- #
     fr_init: float = 1.05
@@ -565,13 +560,9 @@ class WtpPensionEnv(gym.Env):
 
     def _get_obs(self) -> np.ndarray:
         """Build the 377-dim observation [FR, B, o_plus, fill_used, month, z_flat].
-
-        Extra solvency scalars (run_007):
-          - annual_o_plus    : cumulative positive overrendement since Jan (Art. 10d fill credit)
-          - annual_fill_used : cumulative fills already used this year (Art. 10d lid 2 tracker)
-          - month_norm       : (month - 1) / 11, 0=Jan, 1=Dec (seasonality signal)
-        """
-        t  = self._t
+""" 
+      
+              t  = self._t
         lb = self.cfg.lookback
 
         # Slice lookback window; zero-pad on the left if at episode start
