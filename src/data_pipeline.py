@@ -63,7 +63,7 @@ class PipelineConfig:
     artifacts_dir:  Path = _DATA_DIR / "processed"
 
     # Temporal splits (inclusive on both ends, ISO date strings)
-    train_start: str = "2000-01-01"
+    train_start: str = "1999-01-01"
     train_end:   str = "2015-12-31"
     val_start:   str = "2016-01-01"
     val_end:     str = "2017-12-31"
