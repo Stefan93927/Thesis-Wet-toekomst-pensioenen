@@ -10,7 +10,7 @@ State space  (374-dim) : [FR_t, B_t,  z_{t-11}, …, z_t]
   z_*   : 12 × 31 = 372  scaled monthly feature vectors (LSTM lookback)
 
 Action space (3-dim continuous) :
-  e_t ∈ [-0.25, +0.25]  : equity tilt  →  w_eq = clip(0.55 + e_t, 0.30, 0.90)
+  e_t ∈ [-0.25, +0.25]  : equity tilt  →  w_eq = clip(0.55 + e_t, 0.30, 0.80)
   f_t ∈ [0, 0.10]       : fill rate (transfer from fund to buffer)
   d_t ∈ [0, 0.05]       : distribution rate (transfer from buffer to participants)
 
@@ -117,7 +117,7 @@ class EnvConfig:
     dist_reward_buffer_gate: float = 0.05  # B threshold: full Q_t above, partial below
 
     # --- Transaction costs ------------------------------------------------ #
-    tc_bps:      float = 0.0   # one-way equity turnover cost in basis points
+    tc_bps:      float = 0.1   # one-way equity turnover cost in basis points
                                # (deducted from r_p_t each step as a drag)
 
     # Legacy fields kept for backward compatibility with older configs/tests
