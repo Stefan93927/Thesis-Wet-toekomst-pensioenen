@@ -160,38 +160,41 @@ def compute_metrics(
 # ---------------------------------------------------------------------------
 # Bootstrap confidence intervals
 # ---------------------------------------------------------------------------
-
+from arch.bootstrap import StationaryBootstrap, optimal_block_length  
 def bootstrap_ci(
-    trajectory:  dict,
-    pi_monthly:  Optional[np.ndarray] = None,
-    n_boot:      int = 1000,
-    ci:          float = 0.95,
-    seed:        int = 0,
+    trajectory:     dict,
+    pi_monthly:     Optional[np.ndarray] = None,
+    n_boot:         int = 1000,
+    ci:             float = 0.95,
+    seed:           int = 0,
+    expected_block: Optional[float] = None,
 ) -> dict[str, tuple[float, float]]:
-    """Compute bootstrap confidence intervals for all core metrics.
+    """Stationary block bootstrap CIs (Politis & Romano, 1994), via arch.
 
-    Resamples T timesteps with replacement; indices are sorted before
-    applying so that the bootstrap path preserves temporal ordering
-    (standard approach for financial time-series CIs).
+    Resamples contiguous, geometric-length blocks of months (circular) so the
+    serial dependence and local crisis/recovery structure of the realised path
+    are preserved within each block.
 
     Args:
-        trajectory:  Dict returned by ``run_episode()``.
-        pi_monthly:  Optional monthly CPI array ``(T,)``.
-        n_boot:      Number of bootstrap replications (default 1000).
-        ci:          Confidence level (default 0.95 -> 95% CI).
-        seed:        RNG seed for reproducibility.
+        trajectory:     Dict returned by run_episode().
+        pi_monthly:     Optional monthly CPI array (T,).
+        n_boot:         Number of bootstrap replications (default 1000).
+        ci:             Confidence level (default 0.95 -> 95% CI).
+        seed:           RNG seed for reproducibility.
+        expected_block: Mean block length (months). If None, selected
+                        automatically per Politis & White (2004).
 
     Returns:
-        Dict ``{metric_key: (lower, upper)}`` with the same keys as
-        :func:`compute_metrics`.
+        Dict {metric_key: (lower, upper)} with the same keys as compute_metrics.
     """
-    rng  = np.random.default_rng(seed)
-    T    = len(trajectory["FR"])
+    from arch.bootstrap import StationaryBootstrap, optimal_block_length  # lazy: only used here
+
+    T = len(trajectory["FR"])
     traj_keys = [k for k in ["FR", "B", "r_p", "d_tilde", "f_tilde", "dec_excess",
-                              "r_p_young", "r_p_mid", "r_p_ret",
-                              "ppv_young", "ppv_mid", "ppv_ret"]
+                             "r_p_young", "r_p_mid", "r_p_ret",
+                             "ppv_young", "ppv_mid", "ppv_ret"]
                  if k in trajectory]
-    pi   = (
+    pi = (
         np.asarray(pi_monthly, dtype=np.float64)
         if pi_monthly is not None and len(pi_monthly) == T
         else np.zeros(T, dtype=np.float64)
@@ -206,8 +209,15 @@ def bootstrap_ci(
     ]
     boot_samples: dict[str, list[float]] = {k: [] for k in metric_keys}
 
-    for _ in range(n_boot):
-        idx    = np.sort(rng.integers(0, T, size=T))   # sorted -> temporal order
+    if expected_block is None:
+        fr  = np.asarray(trajectory["FR"], dtype=np.float64)
+        dfr = np.diff(fr, prepend=fr[0])
+        expected_block = max(2.0, float(optimal_block_length(dfr)["stationary"].iloc[0]))
+
+    # Resample time indices in blocks; apply jointly to every aligned series.
+    bs = StationaryBootstrap(expected_block, np.arange(T), seed=seed)
+    for (resampled,), _ in bs.bootstrap(n_boot):
+        idx    = np.asarray(resampled, dtype=int).ravel()
         sub    = {k: np.asarray(trajectory[k])[idx] for k in traj_keys}
         sub_pi = pi[idx]
         m      = compute_metrics(sub, pi_monthly=sub_pi)
