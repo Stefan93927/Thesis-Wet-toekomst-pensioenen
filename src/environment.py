@@ -775,13 +775,13 @@ def make_env_from_pipeline(
         .clip(env_cfg.r_bond_clip[0], env_cfg.r_bond_clip[1])
     )
 
-    # r_L_MtM: from RTS file if available, else swap-based fallback
-    if "d_rts_20y" in z_raw.columns:
-        r_L_MtM = -env_cfg.duration * z_raw["d_rts_20y"].values / 100.0
-    else:
+
+
+  
+
         r_L_MtM = -env_cfg.duration * z_raw["d_swap_20y"].values / 100.0
 
-    # r_L_blended: pre-computed DNB RTS blended return (official methodology)
+    
     r_L_blended = None
     if "r_L_blended" in results:
         r_L_blended = (
