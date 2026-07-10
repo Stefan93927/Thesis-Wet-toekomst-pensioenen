@@ -728,7 +728,7 @@ def train(argv=None) -> None:
         beta_bar        = _beta_bar,
     )
     vstoxx_train    = results["z_train_raw"]["vstoxx_level"].values
-    rts_slope_train = results["z_train_raw"]["rts_slope_30y_10y"].values
+    rts_slope_train = results["z_train_raw"]["swap_slope_30y_10y"].values
     gmm = fit_gmm(
         vstoxx_train    = vstoxx_train,
         rts_slope_train = rts_slope_train,
