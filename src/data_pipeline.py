@@ -9,7 +9,7 @@ Data sources
 - LSEG_Clean_Global_Indices.csv    : global equity indices (SPX, DAX, etc.).
 - CPI nederland.csv                : Dutch CPI, semicolon-delimited, monthly.
 - DNB_RTS_Constructed.csv          : DNB rentetermijnstructuur (bootstrapped yield
-                                     curve), liability returns, RTS slopes.
+                                     curve), liability returns, UFR.
 
 Outputs
 -------
@@ -18,17 +18,17 @@ Outputs
 - raw_train / raw_val / test : full merged monthly DataFrames.
 - cpi                        : monthly CPI DataFrame.
 - scaler                     : fitted StandardScaler (also saved via joblib).
-- r_L_blended                : full-history Series of blended RTS liability returns.
+- r_L_blended                : full-history Series of blended liability returns.
 
 Feature set (31 dimensions)
 ---------------------------
 Equity momentum (12) : 1M/3M/12M log-returns for MSCI World, AEX, Stoxx50, EM.
-RTS slopes      (2)  : RTS_10Y-RTS_2Y, RTS_30Y-RTS_10Y  (DNB term structure).
+Swap slopes      (2)  : Swap_10Y-Swap_2Y, Swap_30Y-Swap_10Y  (DNB term structure).
 Volatility      (3)  : VSTOXX level, 1M change, 3M change.
 Rates           (4)  : Euribor_3M, Euribor_1Y proxy (Swap_1Y), Yield_US_10Y,
                        Yield_DE_10Y.
-Liability return(1)  : Liability_Return_MtM from DNB RTS (replaces swap proxy).
-RTS 20Y level   (1)  : RTS_20Y -- official DNB 20Y discount rate.
+Liability return(1)  : Liability_Return_MtM.
+Swap 20Y level   (1)  : Swap_20Y.
 Swap levels     (4)  : Swap_2Y, Swap_5Y, Swap_10Y, Swap_30Y.
 Rate changes    (2)  : Delta_Swap_10Y, Delta_RTS_20Y.
 Commodities     (2)  : Gold log-return, Oil log-return.
@@ -80,21 +80,21 @@ class PipelineConfig:
         "mom_aex_1m",   "mom_aex_3m",   "mom_aex_12m",
         "mom_stoxx_1m", "mom_stoxx_3m", "mom_stoxx_12m",
         "mom_em_1m",    "mom_em_3m",    "mom_em_12m",
-        # RTS slopes (2) — DNB rentetermijnstructuur, replaces swap slopes
-        "rts_slope_10y_2y", "rts_slope_30y_10y",
+        # Swap slopes (2) 
+        "Swap_slope_10y_2y", "Swap_slope_30y_10y",
         # Volatility (3)  — 3M change replaces TED Spread (full coverage from 1999)
         "vstoxx_level", "d_vstoxx_1m", "d_vstoxx_3m",
         # Rates (4)
         "euribor_3m", "euribor_1y_proxy",
         "yield_us_10y", "yield_de_10y",
-        # Liability return (1) — DNB RTS MtM, replaces swap-based proxy
+        # Liability return (1) — MtM: -Duration * dSwap20Y / 100
         "liab_return_mkt",
-        # RTS 20Y level (1) — official DNB discount rate, replaces swap_20y
-        "rts_20y",
-        # Swap levels (4) — swap_20y removed (replaced by rts_20y above)
+        # Swap 20Y level (1)
+        "Swap_20y",
+        # Swap levels (4) 
         "swap_2y", "swap_5y", "swap_10y", "swap_30y",
-        # Rate changes (2) — d_swap_20y replaced by d_rts_20y
-        "d_swap_10y", "d_rts_20y",
+        # Rate changes (2) 
+        "d_swap_10y", "d_swap_20y",
         # Commodities (2)
         "gold_log_ret", "oil_log_ret",
     ])
@@ -358,9 +358,9 @@ def compute_features(monthly: pd.DataFrame, cfg: PipelineConfig) -> pd.DataFrame
         z[f"mom_{short}_3m"]  = _log_ret(prices, 3)
         z[f"mom_{short}_12m"] = _log_ret(prices, 12)
 
-    # ---- RTS slopes (2) — DNB rentetermijnstructuur ------------------------- #
-    z["rts_slope_10y_2y"]  = monthly["RTS_Slope_10Y_2Y"]
-    z["rts_slope_30y_10y"] = monthly["RTS_Slope_30Y_10Y"]
+    # ---- Swap slopes (2) — ------------------------- #
+    z["swap_slope_10y_2y"]  = monthly["Swap_Slope_10Y_2Y"]
+    z["swap_slope_30y_10y"] = monthly["Swap_Slope_30Y_10Y"]
 
     # ---- Volatility (3) -------------------------------------------------- #
     # 3M change replaces TED Spread (TED only available from Nov 2005).
@@ -375,13 +375,13 @@ def compute_features(monthly: pd.DataFrame, cfg: PipelineConfig) -> pd.DataFrame
     z["yield_us_10y"]    = monthly["Yield_US_10Y_clean"]
     z["yield_de_10y"]    = monthly["Yield_DE_10Y"]
 
-    # ---- Liability return (1): DNB RTS MtM --------------------------------- #
-    # Replaces the swap-based proxy; computed directly from the bootstrapped
-    # RTS curve matching the DNB Smith-Wilson methodology.
-    z["liab_return_mkt"] = monthly["Liability_Return_MtM"]
+    # ---- Liability return (1):  MtM-Duration * dSwap20Y / 100 ------------ #
 
-    # ---- RTS 20Y level (1) ---------------------------------------------- #
-    z["rts_20y"] = monthly["RTS_20Y"]
+  
+    z["liab_return_mkt"] = -cfg.duration * monthly["Swap_20Y"].diff(1) / 100.0
+
+    # ---- Swap 20Y level (1) ---------------------------------------------- #
+    z["swap_20y"] = monthly["Swap_20Y"]
 
     # ---- Swap levels (4) — swap_20y replaced by rts_20y above ------------ #
     z["swap_2y"]  = monthly["Swap_2Y"]
@@ -391,7 +391,7 @@ def compute_features(monthly: pd.DataFrame, cfg: PipelineConfig) -> pd.DataFrame
 
     # ---- Rate changes (2) ----------------------------------------------- #
     z["d_swap_10y"] = monthly["Swap_10Y"].diff(1)
-    z["d_rts_20y"]  = monthly["Delta_RTS_20Y"]
+    z["d_swap_20y"]  = monthly["Swap_20Y"].diff(1)
 
     # ---- Commodities (2) ------------------------------------------------- #
     z["gold_log_ret"] = _log_ret(monthly["Gold_Spot"],  1)
@@ -548,18 +548,18 @@ def run_pipeline(cfg: PipelineConfig | None = None) -> dict:
     lseg_df  = load_global_indices(cfg.data_dir)
     agal_df  = load_agal_indicators(cfg.data_dir)
     cpi_df   = load_cpi(cfg.data_dir)
-    rts_df   = load_rts(cfg.data_dir)
+  
 
     # 2. Merge daily sources → monthly -------------------------------------- #
     monthly = merge_all_sources(excel_df, extra_df, lseg_df, agal_df)
 
-    # 3. Attach CPI and RTS (both already monthly) -------------------------- #
+    # 3. Attach CPI and  (both already monthly) -------------------------- #
     monthly = monthly.join(cpi_df, how="left")
-    rts_cols = [
-        "RTS_20Y", "Delta_RTS_20Y", "Liability_Return_MtM",
-        "Liability_Return_Blended", "RTS_Slope_10Y_2Y", "RTS_Slope_30Y_10Y",
-    ]
-    monthly = monthly.join(rts_df[rts_cols], how="left")
+
+
+
+
+  
 
     # 4. Compute 31-dim features -------------------------------------------- #
     z_full = compute_features(monthly, cfg)
@@ -581,7 +581,7 @@ def run_pipeline(cfg: PipelineConfig | None = None) -> dict:
 
     # Extract blended RTS liability return series for each split
     # (used by environment to replace swap-based r_L computation)
-    r_L_blended = monthly["Liability_Return_Blended"].fillna(0.0)
+    r_L_blended = (0.70 * (-cfg.duration * monthly["Swap_20Y"].diff(1) / 100.0) + 0.30 * 0.002711).fillna(0.0)
 
     return {
         "monthly_raw":   monthly,
