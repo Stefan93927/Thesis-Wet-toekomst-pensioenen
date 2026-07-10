@@ -466,7 +466,7 @@ class WtpPensionEnv(gym.Env):
 
         r_L_MtM_t = float(self.r_L_MtM[t])
         if self.r_L_blended is not None:
-            # Use pre-computed DNB RTS blended return (official methodology)
+            # Use pre-computed DNB RTS blended return
             r_L_t = float(self.r_L_blended[t])
         else:
             # Fallback: blend MtM with UFR in-house
