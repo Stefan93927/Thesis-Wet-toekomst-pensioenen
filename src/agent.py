@@ -107,7 +107,7 @@ class AgentConfig:
     #   sigmoid(0.619)=0.65, sigmoid(0.201)=0.55, sigmoid(-0.619)=0.35
     beta_bar:               list  = field(default_factory=lambda: [0.619, 0.201, -0.619])
     vstoxx_feature_idx:     int   = 14   # index of vstoxx_level in z_t
-    rts_slope_feature_idx:  int   = 13   # index of rts_slope_30y_10y in z_t
+    Swap_slope_feature_idx:  int   = 13   # index of swap_slope_30y_10y in z_t
 
     # --- Covariance / Risk parity ---------------------------------------- #
     cov_eps: float = 1e-6   # numerical floor for softplus volatilities
