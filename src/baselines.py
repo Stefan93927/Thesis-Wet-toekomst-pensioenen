@@ -373,7 +373,7 @@ class MonteCarloALM:
         r_eq_s = np.clip(r_eq_s, cfg.r_eq_clip[0], cfg.r_eq_clip[1])
 
         d_swap_10y_s = raw_train["Swap_10Y"].diff().values
-        col_20y = "RTS_20Y" if "RTS_20Y" in raw_train.columns else "Swap_20Y"
+        col_20y = "Swap_20Y"
         d_swap_20y_s = raw_train[col_20y].diff().values
 
         pi_s = (
